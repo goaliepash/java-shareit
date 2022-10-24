@@ -1,9 +1,9 @@
 package ru.practicum.shareit.item.storage;
 
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.exception.ItemForbiddenException;
+import ru.practicum.shareit.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.exception.ItemForbiddenException;
-import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
@@ -14,10 +14,10 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @Repository
-public
-class InMemoryItemStorage implements ItemStorage {
+public class InMemoryItemStorage implements ItemStorage {
 
-    private static long currentIdentifier;
+    private long currentIdentifier;
+
     private final Map<Long, Item> storage = new TreeMap<>(Long::compareTo);
 
     @Override
@@ -70,20 +70,16 @@ class InMemoryItemStorage implements ItemStorage {
 
     @Override
     public List<ItemDto> search(String text) {
-        if (text.isBlank()) {
-            return List.of();
-        } else {
-            return storage
-                    .values()
-                    .stream()
-                    .filter(Item::getAvailable)
-                    .filter(item ->
-                            item.getName().toLowerCase().contains(text.toLowerCase()) ||
-                                    item.getDescription().toLowerCase().contains(text.toLowerCase())
-                    )
-                    .map(ItemMapper::toItemDto)
-                    .collect(Collectors.toList());
-        }
+        return storage
+                .values()
+                .stream()
+                .filter(Item::isAvailable)
+                .filter(item ->
+                        item.getName().toLowerCase().contains(text.toLowerCase()) ||
+                                item.getDescription().toLowerCase().contains(text.toLowerCase())
+                )
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
     }
 
     private void checkIfItemExists(long itemId) {
