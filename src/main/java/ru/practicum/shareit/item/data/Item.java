@@ -28,7 +28,7 @@ public class Item implements Serializable {
     @Column(nullable = false)
     private String description;
 
-    @Column(nullable = false)
+    @Column(name = "is_available", nullable = false)
     private Boolean available;
 
     @Column(name = "owner_id")
