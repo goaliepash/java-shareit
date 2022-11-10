@@ -6,17 +6,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.shareit.exception.ItemForbiddenException;
-import ru.practicum.shareit.exception.ItemNotFoundException;
-import ru.practicum.shareit.exception.UserConflictException;
-import ru.practicum.shareit.exception.UserNotFoundException;
-import ru.practicum.shareit.item.ItemController;
-import ru.practicum.shareit.user.UserController;
+import ru.practicum.shareit.booking.controller.BookingController;
+import ru.practicum.shareit.exception.*;
+import ru.practicum.shareit.item.controller.ItemController;
+import ru.practicum.shareit.user.controller.UserController;
 
 import javax.validation.ConstraintViolationException;
+import java.util.Map;
 
 @Slf4j
-@RestControllerAdvice(assignableTypes = {UserController.class, ItemController.class})
+@RestControllerAdvice(assignableTypes = {UserController.class, ItemController.class, BookingController.class})
 public class ErrorHandler {
 
     @ExceptionHandler
@@ -27,6 +26,30 @@ public class ErrorHandler {
 
     @ExceptionHandler
     private ResponseEntity<String> handleConstraintViolationException(ConstraintViolationException exception) {
+        log.info(exception.getMessage());
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    private ResponseEntity<String> handleItemBadRequestException(ItemBadRequestException exception) {
+        log.info(exception.getMessage());
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    private ResponseEntity<String> handleBookingBadRequestException(BookingBadRequestException exception) {
+        log.info(exception.getMessage());
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> handleUnsupportedStateException(UnsupportedStateException exception) {
+        log.info(exception.getMessage());
+        return new ResponseEntity<>(Map.of("error", exception.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<String> handleCommentBadRequestException(CommentBadRequestException exception) {
         log.info(exception.getMessage());
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
@@ -45,6 +68,12 @@ public class ErrorHandler {
 
     @ExceptionHandler
     private ResponseEntity<String> handleItemNotFoundException(ItemNotFoundException exception) {
+        log.info(exception.getMessage());
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler
+    private ResponseEntity<String> handleBookingNotFoundException(BookingNotFoundException exception) {
         log.info(exception.getMessage());
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
     }
