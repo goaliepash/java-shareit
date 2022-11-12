@@ -25,10 +25,7 @@ import ru.practicum.shareit.user.data.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -102,23 +99,20 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemDto> get(long ownerId) {
         checkIfUserExists(ownerId);
         List<Item> items = itemRepository.findAllByOwnerId(ownerId);
-        Map<Long, List<CommentDto>> commentsMap = getAllCommentsForItemId();
+        Map<Long, List<CommentDto>> commentsMap = getAllCommentsForItemIdByOwnerId(ownerId);
+        Map<Long, List<Booking>> bookingsMap = getAllBookingsForItemIdByOwnerId(ownerId);
         return items
                 .stream()
                 .map(item -> {
-                    Optional<Booking> lastBooking = bookingRepository
-                            .getLastByItemId(item.getId(), ownerId, Sort.by(Sort.Direction.DESC, "start"))
-                            .stream()
-                            .findFirst();
-                    Optional<Booking> nextBooking = bookingRepository
-                            .getNextByItemId(item.getId(), ownerId, Sort.by(Sort.Direction.ASC, "start"))
-                            .stream()
-                            .findFirst();
-                    if (lastBooking.isEmpty() && nextBooking.isEmpty()) {
-                        return ItemMapper.toStandardItemDto(item, commentsMap.get(item.getId()));
-                    } else {
-                        return ItemMapper.toWithBookingItemDto(item, commentsMap.get(item.getId()), lastBooking, nextBooking);
+                    long itemId = item.getId();
+                    if (bookingsMap.get(itemId) != null) {
+                        Optional<Booking> lastBooking = getLastBookingByItemId(bookingsMap.get(item.getId()));
+                        Optional<Booking> nextBooking = getNextBookingByItemId(bookingsMap.get(item.getId()));
+                        if (lastBooking.isPresent() && nextBooking.isPresent()) {
+                            return ItemMapper.toWithBookingItemDto(item, commentsMap.get(item.getId()), lastBooking, nextBooking);
+                        }
                     }
+                    return ItemMapper.toStandardItemDto(item, commentsMap.get(item.getId()));
                 })
                 .collect(Collectors.toList());
     }
@@ -175,9 +169,9 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    private Map<Long, List<CommentDto>> getAllCommentsForItemId() {
+    private Map<Long, List<CommentDto>> getAllCommentsForItemIdByOwnerId(long ownerId) {
         Map<Long, List<CommentDto>> map = new LinkedHashMap<>();
-        commentRepository.findAll().forEach(comment -> {
+        commentRepository.findAllByOwnerId(ownerId).forEach(comment -> {
             long itemId = comment.getItem().getId();
             CommentDto commentDto = CommentMapper.toCommentDto(comment);
             if (map.containsKey(itemId)) {
@@ -187,5 +181,40 @@ public class ItemServiceImpl implements ItemService {
             }
         });
         return map;
+    }
+
+    private Map<Long, List<Booking>> getAllBookingsForItemIdByOwnerId(long ownerId) {
+        Map<Long, List<Booking>> bookings = new LinkedHashMap<>();
+        bookingRepository
+                .findAllByOwner(ownerId, Sort.by(Sort.Direction.ASC, "start"))
+                .forEach(booking -> {
+                    long itemId = booking.getItem().getId();
+                    if (bookings.containsKey(itemId)) {
+                        bookings.get(itemId).add(booking);
+                    } else {
+                        List<Booking> list = new LinkedList<>();
+                        list.add(booking);
+                        bookings.put(itemId, list);
+                    }
+                });
+        return bookings;
+    }
+
+    private Optional<Booking> getLastBookingByItemId(List<Booking> bookings) {
+        for (int i = 0; i < bookings.size(); i++) {
+            if (bookings.get(i).getStart().isAfter(LocalDateTime.now()) && i != 0) {
+                return Optional.of(bookings.get(i - 1));
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<Booking> getNextBookingByItemId(List<Booking> bookings) {
+        for (Booking booking : bookings) {
+            if (booking.getStart().isAfter(LocalDateTime.now())) {
+                return Optional.of(booking);
+            }
+        }
+        return Optional.empty();
     }
 }
