@@ -2,9 +2,10 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.model.dto.BookingDto;
 import ru.practicum.shareit.booking.model.dto.BookingRequestDto;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
 
     private static final String ALL = "ALL";
@@ -31,6 +33,7 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
 
+    @Transactional
     @Override
     public BookingDto create(long userId, BookingRequestDto createBookingDto) {
         // Проверки
@@ -53,6 +56,7 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toStandardBookingDto(createdBooking);
     }
 
+    @Transactional
     @Override
     public BookingDto update(long ownerId, long bookingId, BookingStatus status) {
         // Проверки
@@ -67,7 +71,7 @@ public class BookingServiceImpl implements BookingService {
             throw new BookingBadRequestException(String.format("Статус бронирования %d уже подтверждён.", bookingId));
         }
         booking.setStatus(status);
-        return BookingMapper.toStandardBookingDto(bookingRepository.save(booking));
+        return BookingMapper.toStandardBookingDto(booking);
     }
 
     @Override
@@ -89,12 +93,9 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingDto> getAllByBooker(long bookerId, String status) {
         // Проверка
         checkIfUserExists(bookerId);
-        if (status.equals(ALL)) {
-            return findAllByBooker(bookerId);
-        } else if (EnumUtils.isValidEnum(BookingStatus.class, status)) {
-            return findAllByBookerAndStatus(bookerId, EnumUtils.getEnum(BookingStatus.class, status));
-        } else if (EnumUtils.isValidEnum(BookingState.class, status)) {
-            return findAllByBookerAndState(bookerId, EnumUtils.getEnum(BookingState.class, status));
+        if (EnumUtils.isValidEnum(BookingStatus.class, status)) {
+            BookingStatus bookingStatus = EnumUtils.getEnum(BookingStatus.class, status);
+            return findAllByBookerAndStatus(bookerId, bookingStatus);
         } else {
             throw new UnsupportedStateException("Unknown state: UNSUPPORTED_STATUS");
         }
@@ -104,12 +105,9 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingDto> getAllByOwner(long ownerId, String status) {
         // Проверка
         checkIfUserExists(ownerId);
-        if (status.equals(ALL)) {
-            return findAllByOwner(ownerId);
-        } else if (EnumUtils.isValidEnum(BookingStatus.class, status)) {
-            return findAllByOwnerAndStatus(ownerId, EnumUtils.getEnum(BookingStatus.class, status));
-        } else if (EnumUtils.isValidEnum(BookingState.class, status)) {
-            return findAllByOwnerAndState(ownerId, EnumUtils.getEnum(BookingState.class, status));
+        if (EnumUtils.isValidEnum(BookingStatus.class, status)) {
+            BookingStatus bookingStatus = EnumUtils.getEnum(BookingStatus.class, status);
+            return findAllByOwnerAndStatus(ownerId, bookingStatus);
         } else {
             throw new UnsupportedStateException("Unknown state: UNSUPPORTED_STATUS");
         }
@@ -134,11 +132,8 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void checkCorrectDateTimePeriod(LocalDateTime start, LocalDateTime end) {
-        if (start.isBefore(LocalDateTime.now())) {
-            throw new BookingBadRequestException("Дата начала бронирования указана в прошедшем времени.");
-        }
-        if (end.isBefore(LocalDateTime.now())) {
-            throw new BookingBadRequestException("Дата окончания бронирования указана в прошедшем времени.");
+        if (start.equals(end)) {
+            throw new BookingBadRequestException("Дата начала бронирования не может быть равна дате окончания.");
         }
         if (start.isAfter(end)) {
             throw new BookingBadRequestException("Дата начала бронирования указана позже даты окончания.");
@@ -163,65 +158,45 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private List<BookingDto> findAllByBooker(long bookerId) {
-        return bookingRepository
-                .findAllByBooker(bookerId)
-                .stream()
-                .map(BookingMapper::toStandardBookingDto)
-                .collect(Collectors.toList());
-    }
-
     private List<BookingDto> findAllByBookerAndStatus(long bookerId, BookingStatus status) {
-        return bookingRepository
-                .findAllByBookerAndStatus(bookerId, status)
-                .stream()
-                .map(BookingMapper::toStandardBookingDto)
-                .collect(Collectors.toList());
-    }
-
-    private List<BookingDto> findAllByBookerAndState(long bookerId, BookingState state) {
         List<Booking> bookings;
-        switch (state) {
+        switch (status) {
+            case ALL:
+                bookings = bookingRepository.findAllByBooker(bookerId, Sort.by(Sort.Direction.DESC, "start"));
+                break;
             case PAST:
-                bookings = bookingRepository.findAllPastByBooker(bookerId);
+                bookings = bookingRepository.findAllPastByBooker(bookerId, Sort.by(Sort.Direction.DESC, "start"));
                 break;
             case CURRENT:
-                bookings = bookingRepository.findAllCurrentByBooker(bookerId);
+                bookings = bookingRepository.findAllCurrentByBooker(bookerId, Sort.by(Sort.Direction.DESC, "start"));
+                break;
+            case FUTURE:
+                bookings = bookingRepository.findAllFutureByBooker(bookerId, Sort.by(Sort.Direction.DESC, "start"));
                 break;
             default:
-                bookings = bookingRepository.findAllFutureByBooker(bookerId);
+                bookings = bookingRepository.findAllByBookerAndStatus(bookerId, status, Sort.by(Sort.Direction.DESC, "start"));
                 break;
         }
         return bookings.stream().map(BookingMapper::toStandardBookingDto).collect(Collectors.toList());
     }
 
-    private List<BookingDto> findAllByOwner(long ownerId) {
-        return bookingRepository
-                .findAllByOwner(ownerId)
-                .stream()
-                .map(BookingMapper::toStandardBookingDto)
-                .collect(Collectors.toList());
-    }
-
     private List<BookingDto> findAllByOwnerAndStatus(long ownerId, BookingStatus status) {
-        return bookingRepository
-                .findAllByOwnerAndStatus(ownerId, status)
-                .stream()
-                .map(BookingMapper::toStandardBookingDto)
-                .collect(Collectors.toList());
-    }
-
-    private List<BookingDto> findAllByOwnerAndState(long ownerId, BookingState state) {
         List<Booking> bookings;
-        switch (state) {
+        switch (status) {
+            case ALL:
+                bookings = bookingRepository.findAllByOwner(ownerId, Sort.by(Sort.Direction.DESC, "start"));
+                break;
             case PAST:
-                bookings = bookingRepository.findAllPastByOwner(ownerId);
+                bookings = bookingRepository.findAllPastByOwner(ownerId, Sort.by(Sort.Direction.DESC, "start"));
                 break;
             case CURRENT:
-                bookings = bookingRepository.findAllCurrentByOwner(ownerId);
+                bookings = bookingRepository.findAllCurrentByOwner(ownerId, Sort.by(Sort.Direction.DESC, "start"));
+                break;
+            case FUTURE:
+                bookings = bookingRepository.findAllFutureByOwner(ownerId, Sort.by(Sort.Direction.DESC, "start"));
                 break;
             default:
-                bookings = bookingRepository.findAllFutureByOwner(ownerId);
+                bookings = bookingRepository.findAllByOwnerAndStatus(ownerId, status, Sort.by(Sort.Direction.DESC, "start"));
                 break;
         }
         return bookings.stream().map(BookingMapper::toStandardBookingDto).collect(Collectors.toList());

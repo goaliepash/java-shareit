@@ -1,7 +1,9 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -23,13 +25,16 @@ import ru.practicum.shareit.user.data.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
@@ -37,6 +42,7 @@ public class ItemServiceImpl implements ItemService {
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
 
+    @Transactional
     @Override
     public ItemDto create(long userId, StandardItemDto itemDto) {
         checkIfUserExists(userId);
@@ -45,39 +51,44 @@ public class ItemServiceImpl implements ItemService {
         return ItemMapper.toStandardItemDto(itemRepository.save(item), null);
     }
 
+    @Transactional
     @Override
     public ItemDto update(long itemId, long userId, StandardItemDto itemDto) {
         checkIfItemExists(itemId);
         Item updatedItem = itemRepository.getReferenceById(itemId);
         checkItemOwner(userId, updatedItem.getOwnerId());
-        if (itemDto.getName() != null) {
+        if (itemDto.getName() != null && !itemDto.getName().isBlank()) {
             updatedItem.setName(itemDto.getName());
         }
-        if (itemDto.getDescription() != null) {
+        if (itemDto.getDescription() != null && !itemDto.getDescription().isBlank()) {
             updatedItem.setDescription(itemDto.getDescription());
         }
         if (itemDto.getAvailable() != null) {
             updatedItem.setAvailable(itemDto.getAvailable());
         }
         List<CommentDto> comments = commentRepository
-                .findAll()
+                .findAllByItemId(itemId)
                 .stream()
-                .filter(comment -> comment.getItem().getId() == itemId)
                 .map(CommentMapper::toCommentDto)
                 .collect(Collectors.toList());
-        return ItemMapper.toStandardItemDto(itemRepository.save(updatedItem), comments);
+        return ItemMapper.toStandardItemDto(updatedItem, comments);
     }
 
     @Override
     public ItemDto get(long itemId, long ownerId) {
         checkIfItemExists(itemId);
         Item item = itemRepository.getReferenceById(itemId);
-        Optional<Booking> lastBooking = bookingRepository.getLastByItemId(itemId, ownerId).stream().findFirst();
-        Optional<Booking> nextBooking = bookingRepository.getNextByItemId(itemId, ownerId).stream().findFirst();
-        List<CommentDto> comments = commentRepository
-                .findAll()
+        Optional<Booking> lastBooking = bookingRepository
+                .getLastByItemId(itemId, ownerId, Sort.by(Sort.Direction.DESC, "start"))
                 .stream()
-                .filter(comment -> comment.getItem().getId() == itemId)
+                .findFirst();
+        Optional<Booking> nextBooking = bookingRepository
+                .getNextByItemId(itemId, ownerId, Sort.by(Sort.Direction.ASC, "start"))
+                .stream()
+                .findFirst();
+        List<CommentDto> comments = commentRepository
+                .findAllByItemId(itemId)
+                .stream()
                 .map(CommentMapper::toCommentDto)
                 .collect(Collectors.toList());
         if (lastBooking.isEmpty() && nextBooking.isEmpty()) {
@@ -91,21 +102,22 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemDto> get(long ownerId) {
         checkIfUserExists(ownerId);
         List<Item> items = itemRepository.findAllByOwnerId(ownerId);
+        Map<Long, List<CommentDto>> commentsMap = getAllCommentsForItemId();
         return items
                 .stream()
                 .map(item -> {
-                    Optional<Booking> lastBooking = bookingRepository.getLastByItemId(item.getId(), ownerId).stream().findFirst();
-                    Optional<Booking> nextBooking = bookingRepository.getNextByItemId(item.getId(), ownerId).stream().findFirst();
-                    List<CommentDto> comments = commentRepository
-                            .findAll()
+                    Optional<Booking> lastBooking = bookingRepository
+                            .getLastByItemId(item.getId(), ownerId, Sort.by(Sort.Direction.DESC, "start"))
                             .stream()
-                            .filter(comment -> comment.getItem().getId().equals(item.getId()))
-                            .map(CommentMapper::toCommentDto)
-                            .collect(Collectors.toList());
+                            .findFirst();
+                    Optional<Booking> nextBooking = bookingRepository
+                            .getNextByItemId(item.getId(), ownerId, Sort.by(Sort.Direction.ASC, "start"))
+                            .stream()
+                            .findFirst();
                     if (lastBooking.isEmpty() && nextBooking.isEmpty()) {
-                        return ItemMapper.toStandardItemDto(item, comments);
+                        return ItemMapper.toStandardItemDto(item, commentsMap.get(item.getId()));
                     } else {
-                        return ItemMapper.toWithBookingItemDto(item, comments, lastBooking, nextBooking);
+                        return ItemMapper.toWithBookingItemDto(item, commentsMap.get(item.getId()), lastBooking, nextBooking);
                     }
                 })
                 .collect(Collectors.toList());
@@ -120,6 +132,7 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public CommentDto addComment(long itemId, long userId, CommentRequestDto commentRequestDto) {
         checkIfUserExists(userId);
@@ -160,5 +173,19 @@ public class ItemServiceImpl implements ItemService {
         if (bookingRepository.findAllCurrentByItemId(itemId).isEmpty()) {
             throw new CommentBadRequestException(String.format("Нельзя добавить комментарий к вещи %d с запланированными бронированиями.", itemId));
         }
+    }
+
+    private Map<Long, List<CommentDto>> getAllCommentsForItemId() {
+        Map<Long, List<CommentDto>> map = new LinkedHashMap<>();
+        commentRepository.findAll().forEach(comment -> {
+            long itemId = comment.getItem().getId();
+            CommentDto commentDto = CommentMapper.toCommentDto(comment);
+            if (map.containsKey(itemId)) {
+                map.get(itemId).add(commentDto);
+            } else {
+                map.put(itemId, List.of(commentDto));
+            }
+        });
+        return map;
     }
 }

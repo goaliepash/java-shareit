@@ -3,7 +3,6 @@ package ru.practicum.shareit.item.data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.Hibernate;
 import ru.practicum.shareit.user.data.User;
 
@@ -16,7 +15,6 @@ import java.util.Objects;
 @Table(name = "comments", schema = "public")
 @Getter
 @Setter
-@ToString
 @RequiredArgsConstructor
 public class Comment implements Serializable {
 

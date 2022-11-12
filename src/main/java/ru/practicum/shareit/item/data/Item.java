@@ -3,7 +3,6 @@ package ru.practicum.shareit.item.data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;
@@ -14,7 +13,6 @@ import java.util.Objects;
 @Table(name = "items", schema = "public")
 @Getter
 @Setter
-@ToString
 @RequiredArgsConstructor
 public class Item implements Serializable {
 
