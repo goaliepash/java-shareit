@@ -46,16 +46,20 @@ public class BookingController {
     @GetMapping
     public List<BookingDto> getAllByBooker(
             @RequestHeader("X-Sharer-User-Id") long bookerId,
-            @RequestParam(required = false, name = "state", defaultValue = "ALL") String status) {
-        log.info("Выполнен запрос GET /bookings?state={}.", status);
-        return service.getAllByBooker(bookerId, status);
+            @RequestParam(name = "state", required = false, defaultValue = "ALL") String status,
+            @RequestParam(name = "from", required = false, defaultValue = "1") int from,
+            @RequestParam(name = "size", required = false, defaultValue = "5") int size) {
+        log.info("Выполнен запрос GET /bookings?state={}&from={}&size={}.", status, from, size);
+        return service.getAllByBooker(bookerId, status, from, size);
     }
 
     @GetMapping("/owner")
     public List<BookingDto> getAllByOwner(
             @RequestHeader("X-Sharer-User-Id") long ownerId,
-            @RequestParam(required = false, name = "state", defaultValue = "ALL") String status) {
-        log.info("Выполнен запрос GET /bookings/owner?state={}.", status);
-        return service.getAllByOwner(ownerId, status);
+            @RequestParam(required = false, name = "state", defaultValue = "ALL") String status,
+            @RequestParam(name = "from", required = false, defaultValue = "0") int from,
+            @RequestParam(name = "size", required = false, defaultValue = "5") int size) {
+        log.info("Выполнен запрос GET /bookings/owner?state={}&from={}&size={}.", status, from, size);
+        return service.getAllByOwner(ownerId, status, from, size);
     }
 }

@@ -7,15 +7,26 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.booking.controller.BookingController;
-import ru.practicum.shareit.exception.*;
+import ru.practicum.shareit.exception.UnsupportedStateException;
+import ru.practicum.shareit.exception.booking.BookingBadRequestException;
+import ru.practicum.shareit.exception.booking.BookingNotFoundException;
+import ru.practicum.shareit.exception.item.ItemBadRequestException;
+import ru.practicum.shareit.exception.item.ItemForbiddenException;
+import ru.practicum.shareit.exception.item.ItemNotFoundException;
+import ru.practicum.shareit.exception.request.ItemRequestBadRequestException;
+import ru.practicum.shareit.exception.request.ItemRequestNotFoundException;
+import ru.practicum.shareit.exception.user.CommentBadRequestException;
+import ru.practicum.shareit.exception.user.UserConflictException;
+import ru.practicum.shareit.exception.user.UserNotFoundException;
 import ru.practicum.shareit.item.controller.ItemController;
+import ru.practicum.shareit.request.controller.ItemRequestController;
 import ru.practicum.shareit.user.controller.UserController;
 
 import javax.validation.ConstraintViolationException;
 import java.util.Map;
 
 @Slf4j
-@RestControllerAdvice(assignableTypes = {UserController.class, ItemController.class, BookingController.class})
+@RestControllerAdvice(assignableTypes = {UserController.class, ItemController.class, BookingController.class, ItemRequestController.class})
 public class ErrorHandler {
 
     @ExceptionHandler
@@ -55,6 +66,12 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    public ResponseEntity<String> handleItemRequestBadRequestException(ItemRequestBadRequestException exception) {
+        log.info(exception.getMessage());
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
     private ResponseEntity<String> handleItemForbiddenException(ItemForbiddenException exception) {
         log.info(exception.getMessage());
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.FORBIDDEN);
@@ -74,6 +91,12 @@ public class ErrorHandler {
 
     @ExceptionHandler
     private ResponseEntity<String> handleBookingNotFoundException(BookingNotFoundException exception) {
+        log.info(exception.getMessage());
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler
+    private ResponseEntity<String> handleItemRequestBadRequestException(ItemRequestNotFoundException exception) {
         log.info(exception.getMessage());
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
     }

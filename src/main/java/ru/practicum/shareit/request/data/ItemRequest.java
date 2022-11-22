@@ -1,48 +1,47 @@
-package ru.practicum.shareit.item.data;
+package ru.practicum.shareit.request.data;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
-import ru.practicum.shareit.request.data.ItemRequest;
+import ru.practicum.shareit.item.data.Item;
+import ru.practicum.shareit.user.data.User;
 
 import javax.persistence.*;
-import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
-@Table(name = "items", schema = "public")
+@Table(name = "requests", schema = "public")
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class Item implements Serializable {
+public class ItemRequest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String name;
-
-    @Column(nullable = false)
     private String description;
 
-    @Column(name = "is_available", nullable = false)
-    private Boolean available;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "requester_id", nullable = false)
+    private User requester;
 
-    @Column(name = "owner_id")
-    private Long ownerId;
+    @Column(nullable = false)
+    private LocalDateTime created;
 
-    @ManyToOne
-    @JoinColumn(name = "request_id")
-    private ItemRequest request;
+    @OneToMany(mappedBy = "request")
+    private Set<Item> items;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Item item = (Item) o;
-        return id != null && Objects.equals(id, item.id);
+        ItemRequest itemRequest = (ItemRequest) o;
+        return id != null && Objects.equals(id, itemRequest.id);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package ru.practicum.shareit.exception;
+package ru.practicum.shareit.exception.user;
 
 public class UserConflictException extends RuntimeException {
 

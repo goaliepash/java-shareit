@@ -22,4 +22,5 @@ public class StandardItemDto implements ItemDto {
     private ShortBookingDto lastBooking;
     private ShortBookingDto nextBooking;
     private List<CommentDto> comments;
+    private Long requestId;
 }

@@ -23,6 +23,7 @@ public class ItemMapper {
                 .description(item.getDescription())
                 .available(item.getAvailable())
                 .comments(comments)
+                .requestId(item.getRequest() != null ? item.getRequest().getId() : null)
                 .build();
     }
 
@@ -36,6 +37,7 @@ public class ItemMapper {
                 .lastBooking(lastBooking.map(booking -> ShortBookingDto.builder().id(booking.getId()).bookerId(booking.getBooker().getId()).build()).orElse(null))
                 .nextBooking(nextBooking.map(booking -> ShortBookingDto.builder().id(booking.getId()).bookerId(booking.getBooker().getId()).build()).orElse(null))
                 .comments(comments)
+                .requestId(item.getRequest() != null ? item.getRequest().getId() : null)
                 .build();
     }
 

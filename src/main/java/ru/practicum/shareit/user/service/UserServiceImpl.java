@@ -3,7 +3,7 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.exception.UserNotFoundException;
+import ru.practicum.shareit.exception.user.UserNotFoundException;
 import ru.practicum.shareit.user.data.User;
 import ru.practicum.shareit.user.data.dto.UserDto;
 import ru.practicum.shareit.user.data.mapper.UserMapper;

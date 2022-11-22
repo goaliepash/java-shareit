@@ -7,10 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.exception.CommentBadRequestException;
-import ru.practicum.shareit.exception.ItemForbiddenException;
-import ru.practicum.shareit.exception.ItemNotFoundException;
-import ru.practicum.shareit.exception.UserNotFoundException;
+import ru.practicum.shareit.exception.item.ItemForbiddenException;
+import ru.practicum.shareit.exception.item.ItemNotFoundException;
+import ru.practicum.shareit.exception.user.CommentBadRequestException;
+import ru.practicum.shareit.exception.user.UserNotFoundException;
 import ru.practicum.shareit.item.data.Comment;
 import ru.practicum.shareit.item.data.Item;
 import ru.practicum.shareit.item.data.dto.CommentDto;
@@ -21,6 +21,7 @@ import ru.practicum.shareit.item.data.mapper.CommentMapper;
 import ru.practicum.shareit.item.data.mapper.ItemMapper;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.data.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -38,6 +39,7 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Transactional
     @Override
@@ -45,6 +47,7 @@ public class ItemServiceImpl implements ItemService {
         checkIfUserExists(userId);
         Item item = ItemMapper.fromStandardItemDto(itemDto);
         item.setOwnerId(userId);
+        setRequest(item, itemDto.getRequestId());
         return ItemMapper.toStandardItemDto(itemRepository.save(item), null);
     }
 
@@ -63,6 +66,7 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() != null) {
             updatedItem.setAvailable(itemDto.getAvailable());
         }
+        setRequest(updatedItem, itemDto.getRequestId());
         List<CommentDto> comments = commentRepository
                 .findAllByItemId(itemId)
                 .stream()
@@ -216,5 +220,11 @@ public class ItemServiceImpl implements ItemService {
             }
         }
         return Optional.empty();
+    }
+
+    private void setRequest(Item item, Long requestId) {
+        if (requestId != null && itemRequestRepository.existsById(requestId)) {
+            item.setRequest(itemRequestRepository.getReferenceById(requestId));
+        }
     }
 }

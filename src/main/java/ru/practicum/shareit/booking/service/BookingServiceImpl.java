@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +12,12 @@ import ru.practicum.shareit.booking.model.dto.BookingDto;
 import ru.practicum.shareit.booking.model.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.model.mapper.BookingMapper;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.exception.*;
+import ru.practicum.shareit.exception.UnsupportedStateException;
+import ru.practicum.shareit.exception.booking.BookingBadRequestException;
+import ru.practicum.shareit.exception.booking.BookingNotFoundException;
+import ru.practicum.shareit.exception.item.ItemBadRequestException;
+import ru.practicum.shareit.exception.item.ItemNotFoundException;
+import ru.practicum.shareit.exception.user.UserNotFoundException;
 import ru.practicum.shareit.item.data.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.data.User;
@@ -90,24 +96,26 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDto> getAllByBooker(long bookerId, String status) {
+    public List<BookingDto> getAllByBooker(long bookerId, String status, int from, int size) {
         // Проверка
         checkIfUserExists(bookerId);
+        checkRequestParams(from, size);
         if (EnumUtils.isValidEnum(BookingStatus.class, status)) {
             BookingStatus bookingStatus = EnumUtils.getEnum(BookingStatus.class, status);
-            return findAllByBookerAndStatus(bookerId, bookingStatus);
+            return findAllByBookerAndStatus(bookerId, bookingStatus, from, size);
         } else {
             throw new UnsupportedStateException("Unknown state: UNSUPPORTED_STATUS");
         }
     }
 
     @Override
-    public List<BookingDto> getAllByOwner(long ownerId, String status) {
+    public List<BookingDto> getAllByOwner(long ownerId, String status, int from, int size) {
         // Проверка
         checkIfUserExists(ownerId);
+        checkRequestParams(from, size);
         if (EnumUtils.isValidEnum(BookingStatus.class, status)) {
             BookingStatus bookingStatus = EnumUtils.getEnum(BookingStatus.class, status);
-            return findAllByOwnerAndStatus(ownerId, bookingStatus);
+            return findAllByOwnerAndStatus(ownerId, bookingStatus, from, size);
         } else {
             throw new UnsupportedStateException("Unknown state: UNSUPPORTED_STATUS");
         }
@@ -158,47 +166,62 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private List<BookingDto> findAllByBookerAndStatus(long bookerId, BookingStatus status) {
+    private List<BookingDto> findAllByBookerAndStatus(long bookerId, BookingStatus status, int from, int size) {
         List<Booking> bookings;
+        PageRequest pageRequest = page(from, size, Sort.by(Sort.Direction.DESC, "start"));
         switch (status) {
             case ALL:
-                bookings = bookingRepository.findAllByBooker(bookerId, Sort.by(Sort.Direction.DESC, "start"));
+                bookings = bookingRepository.findAllByBooker(bookerId, pageRequest);
                 break;
             case PAST:
-                bookings = bookingRepository.findAllPastByBooker(bookerId, Sort.by(Sort.Direction.DESC, "start"));
+                bookings = bookingRepository.findAllPastByBooker(bookerId, pageRequest);
                 break;
             case CURRENT:
-                bookings = bookingRepository.findAllCurrentByBooker(bookerId, Sort.by(Sort.Direction.DESC, "start"));
+                bookings = bookingRepository.findAllCurrentByBooker(bookerId, pageRequest);
                 break;
             case FUTURE:
-                bookings = bookingRepository.findAllFutureByBooker(bookerId, Sort.by(Sort.Direction.DESC, "start"));
+                bookings = bookingRepository.findAllFutureByBooker(bookerId, pageRequest);
                 break;
             default:
-                bookings = bookingRepository.findAllByBookerAndStatus(bookerId, status, Sort.by(Sort.Direction.DESC, "start"));
+                bookings = bookingRepository.findAllByBookerAndStatus(bookerId, status, pageRequest);
                 break;
         }
         return bookings.stream().map(BookingMapper::toStandardBookingDto).collect(Collectors.toList());
     }
 
-    private List<BookingDto> findAllByOwnerAndStatus(long ownerId, BookingStatus status) {
+    private List<BookingDto> findAllByOwnerAndStatus(long ownerId, BookingStatus status, int from, int size) {
         List<Booking> bookings;
+        PageRequest pageRequest = page(from, size, Sort.by(Sort.Direction.DESC, "start"));
         switch (status) {
             case ALL:
-                bookings = bookingRepository.findAllByOwner(ownerId, Sort.by(Sort.Direction.DESC, "start"));
+                bookings = bookingRepository.findAllByOwner(ownerId, pageRequest);
                 break;
             case PAST:
-                bookings = bookingRepository.findAllPastByOwner(ownerId, Sort.by(Sort.Direction.DESC, "start"));
+                bookings = bookingRepository.findAllPastByOwner(ownerId, pageRequest);
                 break;
             case CURRENT:
-                bookings = bookingRepository.findAllCurrentByOwner(ownerId, Sort.by(Sort.Direction.DESC, "start"));
+                bookings = bookingRepository.findAllCurrentByOwner(ownerId, pageRequest);
                 break;
             case FUTURE:
-                bookings = bookingRepository.findAllFutureByOwner(ownerId, Sort.by(Sort.Direction.DESC, "start"));
+                bookings = bookingRepository.findAllFutureByOwner(ownerId, pageRequest);
                 break;
             default:
-                bookings = bookingRepository.findAllByOwnerAndStatus(ownerId, status, Sort.by(Sort.Direction.DESC, "start"));
+                bookings = bookingRepository.findAllByOwnerAndStatus(ownerId, status, pageRequest);
                 break;
         }
         return bookings.stream().map(BookingMapper::toStandardBookingDto).collect(Collectors.toList());
+    }
+
+    private void checkRequestParams(int from, int size) {
+        if (from == 0 && size == 0) {
+            throw new BookingBadRequestException("Параметры from и size не могут быть одновременно равны 0.");
+        }
+        if (from < 0 || size < 0) {
+            throw new BookingBadRequestException("Параметры from и size не могут быть отрицательными.");
+        }
+    }
+
+    private static PageRequest page(int from, int size, Sort sort) {
+        return PageRequest.of(from > 0 ? from / size : 0, size, sort);
     }
 }
