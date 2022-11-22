@@ -8,6 +8,7 @@ import ru.practicum.shareit.item.data.Item;
 import ru.practicum.shareit.user.data.User;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
@@ -17,7 +18,7 @@ import java.util.Set;
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class ItemRequest {
+public class ItemRequest implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
