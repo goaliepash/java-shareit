@@ -7,13 +7,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.model.dto.ShortBookingDto;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.item.data.Comment;
 import ru.practicum.shareit.item.data.Item;
-import ru.practicum.shareit.item.data.dto.ItemDto;
-import ru.practicum.shareit.item.data.dto.StandardItemDto;
-import ru.practicum.shareit.item.data.dto.WithBookingItemDto;
+import ru.practicum.shareit.item.data.dto.*;
+import ru.practicum.shareit.item.data.mapper.CommentMapper;
 import ru.practicum.shareit.item.data.mapper.ItemMapper;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -21,7 +23,10 @@ import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.data.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
+
+import static ru.practicum.shareit.utils.Creator.*;
 
 @ExtendWith(MockitoExtension.class)
 class ItemServiceTest {
@@ -45,11 +50,7 @@ class ItemServiceTest {
 
     @Test
     public void testCreate() {
-        Item createdItem = new Item();
-        createdItem.setId(1L);
-        createdItem.setName("Name");
-        createdItem.setDescription("Desc");
-        createdItem.setAvailable(true);
+        Item createdItem = createItem(1L, "Name", "Desc", true, 1L);
 
         Mockito.when(userRepository.existsById(1L)).thenReturn(true);
         Mockito.when(itemRepository.save(Mockito.any())).thenReturn(createdItem);
@@ -62,12 +63,7 @@ class ItemServiceTest {
 
     @Test
     public void testUpdate() {
-        Item updatedItem = new Item();
-        updatedItem.setId(1L);
-        updatedItem.setName("Name");
-        updatedItem.setDescription("Desc");
-        updatedItem.setAvailable(true);
-        updatedItem.setOwnerId(1L);
+        Item updatedItem = createItem(1L, "Name", "Desc", true, 1L);
 
         Mockito.when(itemRepository.existsById(1L)).thenReturn(true);
         Mockito.when(itemRepository.getReferenceById(Mockito.anyLong())).thenReturn(updatedItem);
@@ -91,12 +87,7 @@ class ItemServiceTest {
 
     @Test
     public void testGet() {
-        Item item = new Item();
-        item.setId(1L);
-        item.setName("Name");
-        item.setDescription("Desc");
-        item.setAvailable(true);
-        item.setOwnerId(1L);
+        Item item = createItem(1L, "Name", "Desc", true, 1L);
 
         Mockito.when(itemRepository.existsById(1L)).thenReturn(true);
         Mockito.when(itemRepository.getReferenceById(Mockito.anyLong())).thenReturn(item);
@@ -116,12 +107,7 @@ class ItemServiceTest {
 
     @Test
     public void testGetWithBooking() {
-        Item item = new Item();
-        item.setId(1L);
-        item.setName("Name");
-        item.setDescription("Desc");
-        item.setAvailable(true);
-        item.setOwnerId(1L);
+        Item item = createItem(1L, "Name", "Desc", true, 1L);
 
         User booker = new User();
         booker.setId(1L);
@@ -160,19 +146,8 @@ class ItemServiceTest {
 
     @Test
     public void testGetAll() {
-        Item item1 = new Item();
-        item1.setId(1L);
-        item1.setName("Name 1");
-        item1.setDescription("Desc 1");
-        item1.setAvailable(true);
-        item1.setOwnerId(1L);
-
-        Item item2 = new Item();
-        item2.setId(2L);
-        item2.setName("Name 2");
-        item2.setDescription("Desc 2");
-        item2.setAvailable(true);
-        item2.setOwnerId(1L);
+        Item item1 = createItem(1L, "Name 1", "Desc 1", true, 1L);
+        Item item2 = createItem(2L, "Name 2", "Desc 2", true, 1L);
 
         Mockito.when(userRepository.existsById(1L)).thenReturn(true);
         Mockito.when(itemRepository.findAllByOwnerId(1L)).thenReturn(List.of(item1, item2));
@@ -187,20 +162,54 @@ class ItemServiceTest {
     }
 
     @Test
-    public void testSearch() {
-        Item item1 = new Item();
-        item1.setId(1L);
-        item1.setName("Name 1");
-        item1.setDescription("Desc 1");
-        item1.setAvailable(true);
-        item1.setOwnerId(1L);
+    public void testGetAllWithCommentsAndBookings() {
+        Item item2 = createItem(2L, "Отвертка", "Аккумуляторная отвертка", true, 4L);
+        User user1 = createUser(1L, "updateName", "updateName@user.com");
 
-        Item item2 = new Item();
-        item2.setId(2L);
-        item2.setName("Name 2");
-        item2.setDescription("Desc 2");
-        item2.setAvailable(true);
-        item2.setOwnerId(1L);
+        Comment comment1 = createComment(
+                1L,
+                "Add comment from user 1",
+                item2,
+                user1,
+                LocalDateTime.of(2022, 11, 23, 15, 10, 18)
+        );
+
+        Booking booking1 = createBooking(
+                1L,
+                LocalDateTime.of(2022, 11, 23, 15, 10, 13),
+                LocalDateTime.of(2022, 11, 23, 15, 10, 14),
+                item2,
+                BookingStatus.APPROVED,
+                user1
+        );
+        Booking booking2 = createBooking(
+                2L,
+                LocalDateTime.of(2022, 11, 24, 15, 10, 10),
+                LocalDateTime.of(2022, 11, 25, 15, 10, 10),
+                item2,
+                BookingStatus.APPROVED,
+                user1
+        );
+
+        Mockito.when(userRepository.existsById(4L)).thenReturn(true);
+        Mockito.when(itemRepository.findAllByOwnerId(4L)).thenReturn(List.of(item2));
+        Mockito.when(commentRepository.findAllByOwnerId(4L)).thenReturn(List.of(comment1));
+        Mockito
+                .when(bookingRepository.findAllByOwner(4L, Sort.by(Sort.Direction.ASC, "start")))
+                .thenReturn(List.of(booking1));
+
+        List<ItemDto> expectedItems = List.of(
+                ItemMapper.toStandardItemDto(item2, List.of(CommentMapper.toCommentDto(comment1)))
+        );
+        List<ItemDto> actualItems = itemService.get(4L);
+
+        Assertions.assertEquals(expectedItems, actualItems);
+    }
+
+    @Test
+    public void testSearch() {
+        Item item1 = createItem(1L, "Name 1", "Desc 1", true, 1L);
+        Item item2 = createItem(2L, "Name 2", "Desc 2", true, 1L);
 
         Mockito.when(itemRepository.findAllByText(Mockito.any())).thenReturn(List.of(item1, item2));
 
@@ -213,13 +222,40 @@ class ItemServiceTest {
         Assertions.assertEquals(expectedItems, actualItems);
     }
 
-    private Item createItem(long id, String name, String description, boolean available, long ownerId) {
-        Item item = new Item();
-        item.setId(id);
-        item.setName(name);
-        item.setDescription(description);
-        item.setAvailable(available);
-        item.setOwnerId(ownerId);
-        return item;
+    @Test
+    public void testAddComment() {
+        Item item1 = createItem(1L, "Отвертка", "Аккумуляторная отвертка", true, 4L);
+        User user1 = createUser(1L, "updateName", "updateName@user.com");
+        Booking booking1 = createBooking(
+                1L,
+                LocalDateTime.of(2022, 11, 23, 15, 10, 13),
+                LocalDateTime.of(2022, 11, 23, 15, 10, 14),
+                item1,
+                BookingStatus.APPROVED,
+                user1
+        );
+        Comment comment1 = createComment(
+                1L,
+                "Add comment from user 1",
+                item1,
+                user1,
+                LocalDateTime.of(2022, 11, 23, 15, 10, 18)
+        );
+
+        CommentRequestDto commentRequestDto = new CommentRequestDto();
+        commentRequestDto.setText("Add comment from user 1");
+
+        Mockito.when(userRepository.existsById(1L)).thenReturn(true);
+        Mockito.when(itemRepository.existsById(1L)).thenReturn(true);
+        Mockito.when(bookingRepository.findAllByItemIdAndStatus(1L, BookingStatus.REJECTED)).thenReturn(List.of(booking1));
+        Mockito.when(bookingRepository.findAllCurrentByItemId(1L)).thenReturn(List.of(booking1));
+        Mockito.when(userRepository.getReferenceById(1L)).thenReturn(user1);
+        Mockito.when(itemRepository.getReferenceById(1L)).thenReturn(item1);
+        Mockito.when(commentRepository.save(Mockito.any())).thenReturn(comment1);
+
+        CommentDto expectedCommentDto = CommentMapper.toCommentDto(comment1);
+        CommentDto actualCommentDto = itemService.addComment(1L, 1L, commentRequestDto);
+
+        Assertions.assertEquals(expectedCommentDto, actualCommentDto);
     }
 }
