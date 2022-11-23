@@ -4,9 +4,11 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.item.data.Comment;
 import ru.practicum.shareit.item.data.Item;
+import ru.practicum.shareit.request.data.ItemRequest;
 import ru.practicum.shareit.user.data.User;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 public class Creator {
 
@@ -47,5 +49,15 @@ public class Creator {
         booking.setStatus(status);
         booking.setBooker(booker);
         return booking;
+    }
+
+    public static ItemRequest createItemRequest(long id, String description, User requester, LocalDateTime created, Set<Item> items) {
+        ItemRequest itemRequest = new ItemRequest();
+        itemRequest.setId(id);
+        itemRequest.setDescription(description);
+        itemRequest.setRequester(requester);
+        itemRequest.setCreated(created);
+        itemRequest.setItems(items);
+        return itemRequest;
     }
 }
