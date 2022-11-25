@@ -33,8 +33,14 @@ public class ItemMapper {
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
-                .lastBooking(lastBooking.map(booking -> ShortBookingDto.builder().id(booking.getId()).bookerId(booking.getBooker().getId()).build()).orElse(null))
-                .nextBooking(nextBooking.map(booking -> ShortBookingDto.builder().id(booking.getId()).bookerId(booking.getBooker().getId()).build()).orElse(null))
+                .lastBooking(lastBooking
+                        .map(booking -> new ShortBookingDto(booking.getId(), booking.getBooker().getId()))
+                        .orElse(null)
+                )
+                .nextBooking(nextBooking
+                        .map(booking -> new ShortBookingDto(booking.getId(), booking.getBooker().getId()))
+                        .orElse(null)
+                )
                 .comments(comments)
                 .requestId(item.getRequest() != null ? item.getRequest().getId() : null)
                 .build();

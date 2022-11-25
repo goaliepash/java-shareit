@@ -60,7 +60,7 @@ class BookingServiceTest {
                 BookingStatus.WAITING,
                 user1
         );
-        BookingRequestDto bookingRequestDto1 = BookingRequestDto.builder().start(start).end(end).itemId(1L).build();
+        BookingRequestDto bookingRequestDto1 = new BookingRequestDto(1L, start, end);
 
         Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(true);
         Mockito.when(itemRepository.existsById(Mockito.anyLong())).thenReturn(true);

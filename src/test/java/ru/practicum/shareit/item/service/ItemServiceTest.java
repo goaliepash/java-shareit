@@ -138,8 +138,8 @@ class ItemServiceTest {
                 .description("Desc")
                 .available(true)
                 .comments(List.of())
-                .lastBooking(ShortBookingDto.builder().id(1L).bookerId(1L).build())
-                .nextBooking(ShortBookingDto.builder().id(2L).bookerId(1L).build())
+                .lastBooking(new ShortBookingDto(1L, 1L))
+                .nextBooking(new ShortBookingDto(2L, 1L))
                 .build();
         ItemDto actualItemDto = itemService.get(1L, 1L);
 

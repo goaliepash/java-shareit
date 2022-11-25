@@ -1,7 +1,8 @@
 package ru.practicum.shareit.booking.model.dto;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import ru.practicum.shareit.constraint_group.Create;
 
 import javax.validation.constraints.Future;
@@ -10,7 +11,8 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Data
-@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class BookingRequestDto implements BookingDto {
 
     @NotNull(groups = {Create.class})

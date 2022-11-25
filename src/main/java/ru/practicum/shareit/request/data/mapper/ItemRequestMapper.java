@@ -25,15 +25,13 @@ public class ItemRequestMapper {
     }
 
     public static ItemRequestDto toItemRequestDto(ItemRequest itemRequest) {
-        return ItemRequestDto
-                .builder()
-                .id(itemRequest.getId())
-                .description(itemRequest.getDescription())
-                .created(itemRequest.getCreated())
-                .items(itemRequest.getItems() != null ?
+        return new ItemRequestDto(
+                itemRequest.getId(),
+                itemRequest.getDescription(),
+                itemRequest.getCreated(),
+                itemRequest.getItems() != null ?
                         itemRequest.getItems().stream().map(item -> ItemMapper.toStandardItemDto(item, null)).collect(Collectors.toSet()) :
                         null
-                )
-                .build();
+        );
     }
 }

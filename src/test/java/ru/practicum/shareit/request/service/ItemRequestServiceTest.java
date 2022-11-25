@@ -42,7 +42,8 @@ class ItemRequestServiceTest {
         Item item1 = createItem(1L, "Отвертка", "Аккумуляторная отвертка", true, 4L);
         User user1 = createUser(1L, "updateName", "updateName@user.com");
         ItemRequest itemRequest = createItemRequest(1L, "Desc 1", user1, LocalDateTime.now(), Set.of(item1));
-        ItemRequestDto itemRequestDto = ItemRequestDto.builder().description("Desc 1").build();
+        ItemRequestDto itemRequestDto = new ItemRequestDto();
+        itemRequestDto.setDescription("Desc 1");
 
         Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(true);
         Mockito.when(userRepository.getReferenceById(Mockito.anyLong())).thenReturn(user1);
