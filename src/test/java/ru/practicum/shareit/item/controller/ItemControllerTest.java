@@ -159,7 +159,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void search() throws Exception {
+    void testSearch() throws Exception {
         StandardItemDto itemDto1 = new StandardItemDto(
                 1L,
                 "Name",
@@ -192,10 +192,9 @@ class ItemControllerTest {
     }
 
     @Test
-    void searchEmptyList() throws Exception {
-        Mockito.when(itemService.search(Mockito.anyString())).thenReturn(List.of());
+    void testSearchEmptyList() throws Exception {
         mvc
-                .perform(get("/items/search?text=Name")
+                .perform(get("/items/search?text=")
                         .header("X-Sharer-User-Id", 1L)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)

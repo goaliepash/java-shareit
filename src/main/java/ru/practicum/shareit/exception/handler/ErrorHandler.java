@@ -16,7 +16,6 @@ import ru.practicum.shareit.exception.item.ItemNotFoundException;
 import ru.practicum.shareit.exception.request.ItemRequestBadRequestException;
 import ru.practicum.shareit.exception.request.ItemRequestNotFoundException;
 import ru.practicum.shareit.exception.user.CommentBadRequestException;
-import ru.practicum.shareit.exception.user.UserConflictException;
 import ru.practicum.shareit.exception.user.UserNotFoundException;
 import ru.practicum.shareit.item.controller.ItemController;
 import ru.practicum.shareit.request.controller.ItemRequestController;
@@ -99,12 +98,6 @@ public class ErrorHandler {
     private ResponseEntity<String> handleItemRequestBadRequestException(ItemRequestNotFoundException exception) {
         log.info(exception.getMessage());
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<String> handleUserConflictException(UserConflictException exception) {
-        log.info(exception.getMessage());
-        return new ResponseEntity<>(exception.getMessage(), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler

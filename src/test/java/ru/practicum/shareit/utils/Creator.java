@@ -22,7 +22,7 @@ public class Creator {
         return item;
     }
 
-    public static User createUser(long id, String name, String email) {
+    public static User createUser(Long id, String name, String email) {
         User user = new User();
         user.setId(id);
         user.setName(name);

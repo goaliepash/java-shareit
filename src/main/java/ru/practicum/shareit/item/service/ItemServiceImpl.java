@@ -166,7 +166,7 @@ public class ItemServiceImpl implements ItemService {
 
     private void checkIfBookingsWithItemExist(long itemId) {
         if (bookingRepository.findAllByItemIdAndStatus(itemId, BookingStatus.REJECTED).isEmpty()) {
-            throw new CommentBadRequestException(String.format("Нельзя добавить комментарий к вещи %d без бронирования", itemId));
+            throw new CommentBadRequestException(String.format("Нельзя добавить комментарий к вещи %d без бронирования.", itemId));
         }
         if (bookingRepository.findAllCurrentByItemId(itemId).isEmpty()) {
             throw new CommentBadRequestException(String.format("Нельзя добавить комментарий к вещи %d с запланированными бронированиями.", itemId));
