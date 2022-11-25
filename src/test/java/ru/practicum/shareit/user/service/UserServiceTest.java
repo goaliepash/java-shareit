@@ -28,7 +28,7 @@ class UserServiceTest {
     }
 
     @Test
-    public void testCreate() {
+    void testCreate() {
         User mockCreatedUser = new User();
         mockCreatedUser.setId(1L);
         mockCreatedUser.setName("Pavel");
@@ -43,7 +43,7 @@ class UserServiceTest {
     }
 
     @Test
-    public void testUpdate() {
+    void testUpdate() {
         User mockUpdatedUser = new User();
         mockUpdatedUser.setId(1L);
         mockUpdatedUser.setName("Pavel");
@@ -58,7 +58,7 @@ class UserServiceTest {
     }
 
     @Test
-    public void testGet() {
+    void testGet() {
         User mockUser = new User();
         mockUser.setId(1L);
         mockUser.setName("Pavel");
@@ -74,7 +74,7 @@ class UserServiceTest {
     }
 
     @Test
-    public void testGetWithWrongUser() {
+    void testGetWithWrongUser() {
         Mockito.when(userRepository.existsById(99L)).thenReturn(false);
 
         final UserNotFoundException exception = Assertions.assertThrows(
@@ -86,12 +86,12 @@ class UserServiceTest {
     }
 
     @Test
-    public void testDelete() {
+    void testDelete() {
         userService.delete(Mockito.anyLong());
     }
 
     @Test
-    public void testGetAll() {
+    void testGetAll() {
         User mockUser1 = new User();
         mockUser1.setId(1L);
         mockUser1.setName("Pavel1");

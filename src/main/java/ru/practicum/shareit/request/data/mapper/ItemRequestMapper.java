@@ -18,9 +18,7 @@ public class ItemRequestMapper {
         itemRequest.setDescription(itemRequestDto.getDescription());
         itemRequest.setRequester(requester);
         itemRequest.setCreated(itemRequestDto.getCreated());
-        if (itemRequestDto.getItems() != null) {
-            itemRequest.setItems(itemRequestDto.getItems().stream().map(ItemMapper::fromStandardItemDto).collect(Collectors.toSet()));
-        }
+        itemRequest.setItems(itemRequestDto.getItems() != null ? itemRequestDto.getItems().stream().map(ItemMapper::fromStandardItemDto).collect(Collectors.toSet()) : null);
         return itemRequest;
     }
 
@@ -29,9 +27,6 @@ public class ItemRequestMapper {
                 itemRequest.getId(),
                 itemRequest.getDescription(),
                 itemRequest.getCreated(),
-                itemRequest.getItems() != null ?
-                        itemRequest.getItems().stream().map(item -> ItemMapper.toStandardItemDto(item, null)).collect(Collectors.toSet()) :
-                        null
-        );
+                itemRequest.getItems() != null ? itemRequest.getItems().stream().map(item -> ItemMapper.toStandardItemDto(item, null)).collect(Collectors.toSet()) : null);
     }
 }
