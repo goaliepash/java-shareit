@@ -52,11 +52,17 @@ class ItemServiceTest {
     public void testCreate() {
         Item createdItem = createItem(1L, "Name", "Desc", true, 1L);
 
+        StandardItemDto itemDto = new StandardItemDto();
+        itemDto.setId(1L);
+        itemDto.setName("Name");
+        itemDto.setDescription("Desc");
+        itemDto.setAvailable(true);
+
         Mockito.when(userRepository.existsById(1L)).thenReturn(true);
         Mockito.when(itemRepository.save(Mockito.any())).thenReturn(createdItem);
 
         ItemDto expectedItemDto = ItemMapper.toStandardItemDto(createdItem, null);
-        ItemDto actualItemDto = itemService.create(1L, StandardItemDto.builder().name("Name").description("Desc").available(true).build());
+        ItemDto actualItemDto = itemService.create(1L, itemDto);
 
         Assertions.assertEquals(expectedItemDto, actualItemDto);
     }
@@ -64,23 +70,21 @@ class ItemServiceTest {
     @Test
     public void testUpdate() {
         Item updatedItem = createItem(1L, "Name", "Desc", true, 1L);
+        StandardItemDto itemDto = new StandardItemDto();
+        itemDto.setName("Name Update");
+        itemDto.setDescription("Desc Update");
+        itemDto.setAvailable(true);
 
         Mockito.when(itemRepository.existsById(1L)).thenReturn(true);
         Mockito.when(itemRepository.getReferenceById(Mockito.anyLong())).thenReturn(updatedItem);
 
-        ItemDto expectedItemDto = StandardItemDto
-                .builder()
-                .id(1L)
-                .name("Name Update")
-                .description("Desc Update")
-                .available(true)
-                .comments(List.of())
-                .build();
-        ItemDto actualItemDto = itemService.update(
-                1L,
-                1L,
-                StandardItemDto.builder().name("Name Update").description("Desc Update").available(true).build()
-        );
+        StandardItemDto expectedItemDto = new StandardItemDto();
+        expectedItemDto.setId(1L);
+        expectedItemDto.setName("Name Update");
+        expectedItemDto.setDescription("Desc Update");
+        expectedItemDto.setAvailable(true);
+        expectedItemDto.setComments(List.of());
+        ItemDto actualItemDto = itemService.update(1L, 1L, itemDto);
 
         Assertions.assertEquals(expectedItemDto, actualItemDto);
     }
@@ -92,14 +96,12 @@ class ItemServiceTest {
         Mockito.when(itemRepository.existsById(1L)).thenReturn(true);
         Mockito.when(itemRepository.getReferenceById(Mockito.anyLong())).thenReturn(item);
 
-        ItemDto expectedItemDto = StandardItemDto
-                .builder()
-                .id(1L)
-                .name("Name")
-                .description("Desc")
-                .available(true)
-                .comments(List.of())
-                .build();
+        StandardItemDto expectedItemDto = new StandardItemDto();
+        expectedItemDto.setId(1L);
+        expectedItemDto.setName("Name");
+        expectedItemDto.setDescription("Desc");
+        expectedItemDto.setAvailable(true);
+        expectedItemDto.setComments(List.of());
         ItemDto actualItemDto = itemService.get(1L, 1L);
 
         Assertions.assertEquals(expectedItemDto, actualItemDto);

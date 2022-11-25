@@ -37,7 +37,7 @@ class UserServiceTest {
         Mockito.when(userRepository.save(Mockito.any())).thenReturn(mockCreatedUser);
 
         UserDto expectedUserDto = UserMapper.toUserDto(mockCreatedUser);
-        UserDto actualUserDto = userService.create(UserDto.builder().name("Pavel").email("pavel@mail.ru").build());
+        UserDto actualUserDto = userService.create(new UserDto(1L, "Pavel", "pavel@mail.ru"));
 
         Assertions.assertEquals(expectedUserDto, actualUserDto);
     }
@@ -51,8 +51,8 @@ class UserServiceTest {
 
         Mockito.when(userRepository.getReferenceById(Mockito.anyLong())).thenReturn(mockUpdatedUser);
 
-        UserDto expectedUserDto = UserDto.builder().id(1L).name("Pavel Update").email("pavelupdate@mail.ru").build();
-        UserDto actualUserDto = userService.update(1L, UserDto.builder().name("Pavel Update").email("pavelupdate@mail.ru").build());
+        UserDto expectedUserDto = new UserDto(1L, "Pavel Update", "pavelupdate@mail.ru");
+        UserDto actualUserDto = userService.update(1L, new UserDto(1L, "Pavel Update", "pavelupdate@mail.ru"));
 
         Assertions.assertEquals(expectedUserDto, actualUserDto);
     }
@@ -67,7 +67,7 @@ class UserServiceTest {
         Mockito.when(userRepository.existsById(1L)).thenReturn(true);
         Mockito.when(userRepository.getReferenceById(1L)).thenReturn(mockUser);
 
-        UserDto expectedUserDto = UserDto.builder().id(1L).name("Pavel").email("pavel@mail.ru").build();
+        UserDto expectedUserDto = new UserDto(1L, "Pavel", "pavel@mail.ru");
         UserDto actualUserDto = userService.get(1);
 
         Assertions.assertEquals(expectedUserDto, actualUserDto);
