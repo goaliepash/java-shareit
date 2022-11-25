@@ -9,6 +9,9 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import ru.practicum.shareit.exception.request.ItemRequestBadRequestException;
+import ru.practicum.shareit.exception.request.ItemRequestNotFoundException;
+import ru.practicum.shareit.exception.user.UserNotFoundException;
 import ru.practicum.shareit.item.data.Item;
 import ru.practicum.shareit.request.data.ItemRequest;
 import ru.practicum.shareit.request.data.dto.ItemRequestDto;
@@ -56,6 +59,21 @@ class ItemRequestServiceTest {
     }
 
     @Test
+    public void testCreateWithUserNotExist() {
+        ItemRequestDto itemRequestDto = new ItemRequestDto();
+        itemRequestDto.setDescription("Desc 1");
+
+        Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(false);
+
+        UserNotFoundException exception = Assertions.assertThrows(
+                UserNotFoundException.class,
+                () -> itemRequestService.create(1L, itemRequestDto)
+        );
+
+        Assertions.assertEquals("Пользователь с идентификатором 1 не найден.", exception.getMessage());
+    }
+
+    @Test
     public void testGetByRequesterId() {
         Item item1 = createItem(1L, "Отвертка", "Аккумуляторная отвертка", true, 4L);
         User user1 = createUser(1L, "updateName", "updateName@user.com");
@@ -88,6 +106,30 @@ class ItemRequestServiceTest {
     }
 
     @Test
+    public void testGetAllWithNullableFromAndSize() {
+        Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(true);
+
+        ItemRequestBadRequestException exception = Assertions.assertThrows(
+                ItemRequestBadRequestException.class,
+                () -> itemRequestService.getAll(1L, 0, 0)
+        );
+
+        Assertions.assertEquals("Параметры from и size не могут быть одновременно равны 0.", exception.getMessage());
+    }
+
+    @Test
+    public void testGetAllWithNegativeFrom() {
+        Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(true);
+
+        ItemRequestBadRequestException exception = Assertions.assertThrows(
+                ItemRequestBadRequestException.class,
+                () -> itemRequestService.getAll(1L, -1, 2)
+        );
+
+        Assertions.assertEquals("Параметры from и size не могут быть отрицательными.", exception.getMessage());
+    }
+
+    @Test
     public void testGet() {
         Item item1 = createItem(1L, "Отвертка", "Аккумуляторная отвертка", true, 4L);
         User user1 = createUser(1L, "updateName", "updateName@user.com");
@@ -101,5 +143,17 @@ class ItemRequestServiceTest {
         ItemRequestDto actualItemRequestDto = itemRequestService.get(1L, 1L);
 
         Assertions.assertEquals(expectedItemRequestDto, actualItemRequestDto);
+    }
+
+    @Test
+    public void testGetItemRequestNotFound() {
+        Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(true);
+        Mockito.when(itemRequestRepository.existsById(Mockito.anyLong())).thenReturn(false);
+
+        ItemRequestNotFoundException exception = Assertions.assertThrows(
+                ItemRequestNotFoundException.class, () -> itemRequestService.get(1L, 1L)
+        );
+
+        Assertions.assertEquals("Запроса с идентификатором 1 не существует.", exception.getMessage());
     }
 }
