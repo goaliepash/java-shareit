@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
+import ru.practicum.shareit.request.data.ItemRequest;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -32,8 +33,9 @@ public class Item implements Serializable {
     @Column(name = "owner_id")
     private Long ownerId;
 
-    @Column(name = "request_id")
-    private Long requestId;
+    @ManyToOne
+    @JoinColumn(name = "request_id")
+    private ItemRequest request;
 
     @Override
     public boolean equals(Object o) {

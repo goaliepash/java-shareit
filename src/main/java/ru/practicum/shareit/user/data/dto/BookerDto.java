@@ -1,10 +1,10 @@
 package ru.practicum.shareit.user.data.dto;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@Builder
+@AllArgsConstructor
 public class BookerDto {
     private Long id;
 }

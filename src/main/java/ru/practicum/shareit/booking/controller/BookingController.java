@@ -10,8 +10,11 @@ import ru.practicum.shareit.booking.model.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.constraint_group.Create;
 
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
+@Validated
 @RestController
 @Slf4j
 @RequiredArgsConstructor
@@ -46,16 +49,20 @@ public class BookingController {
     @GetMapping
     public List<BookingDto> getAllByBooker(
             @RequestHeader("X-Sharer-User-Id") long bookerId,
-            @RequestParam(required = false, name = "state", defaultValue = "ALL") String status) {
-        log.info("Выполнен запрос GET /bookings?state={}.", status);
-        return service.getAllByBooker(bookerId, status);
+            @RequestParam(name = "state", required = false, defaultValue = "ALL") String status,
+            @PositiveOrZero @RequestParam(name = "from", required = false, defaultValue = "0") int from,
+            @Positive @RequestParam(name = "size", required = false, defaultValue = "5") int size) {
+        log.info("Выполнен запрос GET /bookings?state={}&from={}&size={}.", status, from, size);
+        return service.getAllByBooker(bookerId, status, from, size);
     }
 
     @GetMapping("/owner")
     public List<BookingDto> getAllByOwner(
             @RequestHeader("X-Sharer-User-Id") long ownerId,
-            @RequestParam(required = false, name = "state", defaultValue = "ALL") String status) {
-        log.info("Выполнен запрос GET /bookings/owner?state={}.", status);
-        return service.getAllByOwner(ownerId, status);
+            @RequestParam(required = false, name = "state", defaultValue = "ALL") String status,
+            @PositiveOrZero @RequestParam(name = "from", required = false, defaultValue = "0") int from,
+            @Positive @RequestParam(name = "size", required = false, defaultValue = "5") int size) {
+        log.info("Выполнен запрос GET /bookings/owner?state={}&from={}&size={}.", status, from, size);
+        return service.getAllByOwner(ownerId, status, from, size);
     }
 }

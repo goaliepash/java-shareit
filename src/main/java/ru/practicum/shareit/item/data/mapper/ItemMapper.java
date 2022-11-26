@@ -16,14 +16,14 @@ import java.util.Optional;
 public class ItemMapper {
 
     public static StandardItemDto toStandardItemDto(Item item, List<CommentDto> comments) {
-        return StandardItemDto
-                .builder()
-                .id(item.getId())
-                .name(item.getName())
-                .description(item.getDescription())
-                .available(item.getAvailable())
-                .comments(comments)
-                .build();
+        StandardItemDto itemDto = new StandardItemDto();
+        itemDto.setId(item.getId());
+        itemDto.setName(item.getName());
+        itemDto.setDescription(item.getDescription());
+        itemDto.setAvailable(item.getAvailable());
+        itemDto.setComments(comments);
+        itemDto.setRequestId(item.getRequest() != null ? item.getRequest().getId() : null);
+        return itemDto;
     }
 
     public static WithBookingItemDto toWithBookingItemDto(Item item, List<CommentDto> comments, Optional<Booking> lastBooking, Optional<Booking> nextBooking) {
@@ -33,9 +33,16 @@ public class ItemMapper {
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
-                .lastBooking(lastBooking.map(booking -> ShortBookingDto.builder().id(booking.getId()).bookerId(booking.getBooker().getId()).build()).orElse(null))
-                .nextBooking(nextBooking.map(booking -> ShortBookingDto.builder().id(booking.getId()).bookerId(booking.getBooker().getId()).build()).orElse(null))
+                .lastBooking(lastBooking
+                        .map(booking -> new ShortBookingDto(booking.getId(), booking.getBooker().getId()))
+                        .orElse(null)
+                )
+                .nextBooking(nextBooking
+                        .map(booking -> new ShortBookingDto(booking.getId(), booking.getBooker().getId()))
+                        .orElse(null)
+                )
                 .comments(comments)
+                .requestId(item.getRequest() != null ? item.getRequest().getId() : null)
                 .build();
     }
 

@@ -1,4 +1,4 @@
-package ru.practicum.shareit.exception;
+package ru.practicum.shareit.exception.booking;
 
 public class BookingNotFoundException extends RuntimeException {
 

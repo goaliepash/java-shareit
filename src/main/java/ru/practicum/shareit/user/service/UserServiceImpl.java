@@ -3,13 +3,12 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.exception.UserNotFoundException;
+import ru.practicum.shareit.exception.user.UserNotFoundException;
 import ru.practicum.shareit.user.data.User;
 import ru.practicum.shareit.user.data.dto.UserDto;
 import ru.practicum.shareit.user.data.mapper.UserMapper;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,9 +41,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto get(long userId) {
-        try {
+        if (repository.existsById(userId)) {
             return UserMapper.toUserDto(repository.getReferenceById(userId));
-        } catch (EntityNotFoundException exception) {
+        } else {
             throw new UserNotFoundException(String.format("Пользователь с идентификатором %d не найден.", userId));
         }
     }

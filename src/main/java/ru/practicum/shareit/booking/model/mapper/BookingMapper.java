@@ -19,14 +19,12 @@ public class BookingMapper {
     }
 
     public static StandardBookingDto toStandardBookingDto(Booking booking) {
-        return StandardBookingDto
-                .builder()
-                .id(booking.getId())
-                .start(booking.getStart())
-                .end(booking.getEnd())
-                .status(booking.getStatus())
-                .booker(BookerDto.builder().id(booking.getBooker().getId()).build())
-                .item(ShortItemDto.builder().id(booking.getItem().getId()).name(booking.getItem().getName()).build())
-                .build();
+        return new StandardBookingDto(
+                booking.getId(),
+                booking.getStart(),
+                booking.getEnd(),
+                booking.getStatus(),
+                new BookerDto(booking.getBooker().getId()),
+                new ShortItemDto(booking.getItem().getId(), booking.getItem().getName()));
     }
 }
