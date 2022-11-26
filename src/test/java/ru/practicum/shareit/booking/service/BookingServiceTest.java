@@ -596,28 +596,6 @@ class BookingServiceTest {
     }
 
     @Test
-    void testGetAllByOwnerWithNullableFromAndSize() {
-        Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(true);
-
-        BookingBadRequestException exception = Assertions.assertThrows(
-                BookingBadRequestException.class,
-                () -> bookingService.getAllByOwner(1L, "ALL", 0, 0));
-
-        Assertions.assertEquals("Параметры from и size не могут быть одновременно равны 0.", exception.getMessage());
-    }
-
-    @Test
-    void testGetAllByOwnerWithNegative() {
-        Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(true);
-
-        BookingBadRequestException exception = Assertions.assertThrows(
-                BookingBadRequestException.class,
-                () -> bookingService.getAllByOwner(1L, "ALL", -1, 2));
-
-        Assertions.assertEquals("Параметры from и size не могут быть отрицательными.", exception.getMessage());
-    }
-
-    @Test
     void testGetAllByOwnerUnsupportedStatus() {
         Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(true);
 

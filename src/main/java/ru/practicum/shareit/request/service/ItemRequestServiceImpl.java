@@ -5,7 +5,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.exception.request.ItemRequestBadRequestException;
 import ru.practicum.shareit.exception.request.ItemRequestNotFoundException;
 import ru.practicum.shareit.exception.user.UserNotFoundException;
 import ru.practicum.shareit.request.data.ItemRequest;
@@ -50,7 +49,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public List<ItemRequestDto> getAll(long userId, int from, int size) {
         checkIfUserExists(userId);
-        checkRequestParams(from, size);
         return itemRequestRepository
                 .findAllByUserId(userId, page(from, size, Sort.by(Sort.Direction.DESC, "created")))
                 .stream()
@@ -68,15 +66,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private void checkIfUserExists(long userId) {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException(String.format("Пользователь с идентификатором %d не найден.", userId));
-        }
-    }
-
-    private void checkRequestParams(int from, int size) {
-        if (from == 0 && size == 0) {
-            throw new ItemRequestBadRequestException("Параметры from и size не могут быть одновременно равны 0.");
-        }
-        if (from < 0 || size < 0) {
-            throw new ItemRequestBadRequestException("Параметры from и size не могут быть отрицательными.");
         }
     }
 

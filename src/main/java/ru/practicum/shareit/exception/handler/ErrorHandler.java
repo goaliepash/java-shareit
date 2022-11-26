@@ -13,7 +13,6 @@ import ru.practicum.shareit.exception.booking.BookingNotFoundException;
 import ru.practicum.shareit.exception.item.ItemBadRequestException;
 import ru.practicum.shareit.exception.item.ItemForbiddenException;
 import ru.practicum.shareit.exception.item.ItemNotFoundException;
-import ru.practicum.shareit.exception.request.ItemRequestBadRequestException;
 import ru.practicum.shareit.exception.request.ItemRequestNotFoundException;
 import ru.practicum.shareit.exception.user.CommentBadRequestException;
 import ru.practicum.shareit.exception.user.UserNotFoundException;
@@ -60,12 +59,6 @@ public class ErrorHandler {
 
     @ExceptionHandler
     public ResponseEntity<String> handleCommentBadRequestException(CommentBadRequestException exception) {
-        log.info(exception.getMessage());
-        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<String> handleItemRequestBadRequestException(ItemRequestBadRequestException exception) {
         log.info(exception.getMessage());
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }

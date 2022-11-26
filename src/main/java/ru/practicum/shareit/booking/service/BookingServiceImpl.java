@@ -99,7 +99,6 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingDto> getAllByBooker(long bookerId, String status, int from, int size) {
         // Проверка
         checkIfUserExists(bookerId);
-        checkRequestParams(from, size);
         if (EnumUtils.isValidEnum(BookingStatus.class, status)) {
             BookingStatus bookingStatus = EnumUtils.getEnum(BookingStatus.class, status);
             return findAllByBookerAndStatus(bookerId, bookingStatus, from, size);
@@ -112,7 +111,6 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingDto> getAllByOwner(long ownerId, String status, int from, int size) {
         // Проверка
         checkIfUserExists(ownerId);
-        checkRequestParams(from, size);
         if (EnumUtils.isValidEnum(BookingStatus.class, status)) {
             BookingStatus bookingStatus = EnumUtils.getEnum(BookingStatus.class, status);
             return findAllByOwnerAndStatus(ownerId, bookingStatus, from, size);
@@ -210,15 +208,6 @@ public class BookingServiceImpl implements BookingService {
                 break;
         }
         return bookings.stream().map(BookingMapper::toStandardBookingDto).collect(Collectors.toList());
-    }
-
-    private void checkRequestParams(int from, int size) {
-        if (from == 0 && size == 0) {
-            throw new BookingBadRequestException("Параметры from и size не могут быть одновременно равны 0.");
-        }
-        if (from < 0 || size < 0) {
-            throw new BookingBadRequestException("Параметры from и size не могут быть отрицательными.");
-        }
     }
 
     private static PageRequest page(int from, int size, Sort sort) {

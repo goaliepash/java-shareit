@@ -9,7 +9,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import ru.practicum.shareit.exception.request.ItemRequestBadRequestException;
 import ru.practicum.shareit.exception.request.ItemRequestNotFoundException;
 import ru.practicum.shareit.exception.user.UserNotFoundException;
 import ru.practicum.shareit.item.data.Item;
@@ -103,30 +102,6 @@ class ItemRequestServiceTest {
         List<ItemRequestDto> actualRequests = itemRequestService.getAll(1L, 0, 1);
 
         Assertions.assertEquals(expectedRequests, actualRequests);
-    }
-
-    @Test
-    public void testGetAllWithNullableFromAndSize() {
-        Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(true);
-
-        ItemRequestBadRequestException exception = Assertions.assertThrows(
-                ItemRequestBadRequestException.class,
-                () -> itemRequestService.getAll(1L, 0, 0)
-        );
-
-        Assertions.assertEquals("Параметры from и size не могут быть одновременно равны 0.", exception.getMessage());
-    }
-
-    @Test
-    public void testGetAllWithNegativeFrom() {
-        Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(true);
-
-        ItemRequestBadRequestException exception = Assertions.assertThrows(
-                ItemRequestBadRequestException.class,
-                () -> itemRequestService.getAll(1L, -1, 2)
-        );
-
-        Assertions.assertEquals("Параметры from и size не могут быть отрицательными.", exception.getMessage());
     }
 
     @Test
