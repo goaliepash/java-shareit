@@ -23,6 +23,7 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.data.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -45,6 +46,7 @@ public class BookingServiceImpl implements BookingService {
         checkIfUserExists(userId);
         checkIfItemExists(createBookingDto.getItemId());
         checkIfItemAvailable(createBookingDto.getItemId());
+        checkCorrectDateTimePeriod(createBookingDto.getStart(), createBookingDto.getEnd());
         // Получить пользователя
         User booker = userRepository.getReferenceById(userId);
         // Получить вещь для бронирования
@@ -132,6 +134,15 @@ public class BookingServiceImpl implements BookingService {
     private void checkIfItemAvailable(long itemId) {
         if (!itemRepository.getReferenceById(itemId).getAvailable()) {
             throw new ItemBadRequestException(String.format("Вещь с идентификатором %d не доступна.", itemId));
+        }
+    }
+
+    private void checkCorrectDateTimePeriod(LocalDateTime start, LocalDateTime end) {
+        if (start.equals(end)) {
+            throw new BookingBadRequestException("Дата начала бронирования не может быть равна дате окончания.");
+        }
+        if (start.isAfter(end)) {
+            throw new BookingBadRequestException("Дата начала бронирования указана позже даты окончания.");
         }
     }
 
