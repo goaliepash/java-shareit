@@ -38,7 +38,7 @@ public class UserClient extends BaseClient {
     }
 
     public void delete(long userId) {
-        delete(String.format("/%d", userId));
+        delete("/" + userId);
     }
 
     public ResponseEntity<Object> get() {
