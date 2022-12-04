@@ -32,7 +32,7 @@ public class BookingController {
     public ResponseEntity<Object> update(
             @RequestHeader("X-Sharer-User-Id") long ownerId,
             @PathVariable long bookingId,
-            @RequestParam(required = true, name = "approved") boolean approved) {
+            @RequestParam boolean approved) {
         log.info("Выполнен запрос PATCH /bookings/{}?approved={}.", bookingId, approved);
         return client.update(ownerId, bookingId, approved);
     }
