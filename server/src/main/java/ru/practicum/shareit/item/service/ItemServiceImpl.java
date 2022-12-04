@@ -102,7 +102,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemDto> get(long ownerId) {
         checkIfUserExists(ownerId);
-        List<Item> items = itemRepository.findAllByOwnerId(ownerId);
+        List<Item> items = itemRepository.findAllByOwnerId(ownerId, Sort.by(Sort.Direction.ASC, "id"));
         Map<Long, List<CommentDto>> commentsMap = getAllCommentsForItemIdByOwnerId(ownerId);
         Map<Long, List<Booking>> bookingsMap = getAllBookingsForItemIdByOwnerId(ownerId);
         return items

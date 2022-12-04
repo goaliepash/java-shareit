@@ -210,7 +210,7 @@ class ItemServiceTest {
         Item item2 = createItem(2L, "Name 2", "Desc 2", true, 1L);
 
         Mockito.when(userRepository.existsById(1L)).thenReturn(true);
-        Mockito.when(itemRepository.findAllByOwnerId(1L)).thenReturn(List.of(item1, item2));
+        Mockito.when(itemRepository.findAllByOwnerId(1L, Sort.by(Sort.Direction.ASC, "id"))).thenReturn(List.of(item1, item2));
 
         List<ItemDto> expectedItems = List.of(
                 ItemMapper.toStandardItemDto(item1, null),
@@ -252,7 +252,7 @@ class ItemServiceTest {
         );
 
         Mockito.when(userRepository.existsById(4L)).thenReturn(true);
-        Mockito.when(itemRepository.findAllByOwnerId(4L)).thenReturn(List.of(item2));
+        Mockito.when(itemRepository.findAllByOwnerId(4L, Sort.by(Sort.Direction.ASC, "id"))).thenReturn(List.of(item2));
         Mockito.when(commentRepository.findAllByOwnerId(4L)).thenReturn(List.of(comment1));
         Mockito
                 .when(bookingRepository.findAllByOwner(4L, Sort.by(Sort.Direction.ASC, "start")))
