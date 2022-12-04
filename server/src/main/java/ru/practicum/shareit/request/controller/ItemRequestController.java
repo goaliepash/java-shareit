@@ -2,20 +2,15 @@ package ru.practicum.shareit.request.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.constraint_group.Create;
 import ru.practicum.shareit.request.data.dto.ItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@Validated
 @RequestMapping(path = "/requests")
 public class ItemRequestController {
 
@@ -24,7 +19,7 @@ public class ItemRequestController {
     @PostMapping
     public ItemRequestDto create(
             @RequestHeader("X-Sharer-User-Id") long userId,
-            @Validated(Create.class) @RequestBody ItemRequestDto itemRequestDto) {
+            @RequestBody ItemRequestDto itemRequestDto) {
         log.info("Выполнен запрос POST /requests.");
         return service.create(userId, itemRequestDto);
     }
@@ -38,8 +33,8 @@ public class ItemRequestController {
     @GetMapping("/all")
     public List<ItemRequestDto> getAll(
             @RequestHeader("X-Sharer-User-Id") long userId,
-            @PositiveOrZero @RequestParam(name = "from", required = false, defaultValue = "0") int from,
-            @Positive @RequestParam(name = "size", required = false, defaultValue = "5") int size) {
+            @RequestParam(name = "from", required = false, defaultValue = "0") int from,
+            @RequestParam(name = "size", required = false, defaultValue = "5") int size) {
         log.info("Выполнен запрос GET /requests/all?from={}&size={}", from, size);
         return service.getAll(userId, from, size);
     }

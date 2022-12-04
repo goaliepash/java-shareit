@@ -118,46 +118,6 @@ class BookingServiceTest {
     }
 
     @Test
-    void testCreateStartEqualsEnd() {
-        LocalDateTime start = LocalDateTime.of(2022, 11, 22, 15, 48, 22);
-        LocalDateTime end = LocalDateTime.of(2022, 11, 22, 15, 48, 22);
-
-        Item item1 = createItem(1L, "Name 1", "Desc 1", true, 2L);
-
-        BookingRequestDto bookingRequestDto1 = new BookingRequestDto(1L, start, end);
-
-        Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(true);
-        Mockito.when(itemRepository.existsById(Mockito.anyLong())).thenReturn(true);
-        Mockito.when(itemRepository.getReferenceById(Mockito.anyLong())).thenReturn(item1);
-
-        final BookingBadRequestException exception = Assertions.assertThrows(
-                BookingBadRequestException.class,
-                () -> bookingService.create(1L, bookingRequestDto1));
-
-        Assertions.assertEquals("Дата начала бронирования не может быть равна дате окончания.", exception.getMessage());
-    }
-
-    @Test
-    void testCreateStartIsAfterEnd() {
-        LocalDateTime start = LocalDateTime.of(2022, 11, 23, 15, 48, 22);
-        LocalDateTime end = LocalDateTime.of(2022, 11, 22, 15, 48, 22);
-
-        Item item1 = createItem(1L, "Name 1", "Desc 1", true, 2L);
-
-        BookingRequestDto bookingRequestDto1 = new BookingRequestDto(1L, start, end);
-
-        Mockito.when(userRepository.existsById(Mockito.anyLong())).thenReturn(true);
-        Mockito.when(itemRepository.existsById(Mockito.anyLong())).thenReturn(true);
-        Mockito.when(itemRepository.getReferenceById(Mockito.anyLong())).thenReturn(item1);
-
-        final BookingBadRequestException exception = Assertions.assertThrows(
-                BookingBadRequestException.class,
-                () -> bookingService.create(1L, bookingRequestDto1));
-
-        Assertions.assertEquals("Дата начала бронирования указана позже даты окончания.", exception.getMessage());
-    }
-
-    @Test
     void testCreateWithOwnerEqualsBooker() {
         LocalDateTime start = LocalDateTime.now().plusDays(1);
         LocalDateTime end = LocalDateTime.now().plusDays(2);

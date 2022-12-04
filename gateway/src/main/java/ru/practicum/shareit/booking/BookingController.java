@@ -3,16 +3,19 @@ package ru.practicum.shareit.booking;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.constraint_group.Create;
+import ru.practicum.shareit.exception.BookingBadRequestException;
 
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.time.LocalDateTime;
 
 @Validated
-@RestController
+@Controller
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping(path = "/bookings")
@@ -25,6 +28,7 @@ public class BookingController {
             @RequestHeader("X-Sharer-User-Id") long userId,
             @Validated(Create.class) @RequestBody BookingRequestDto createBookingDto) {
         log.info("Выполнен запрос POST /bookings.");
+        checkCorrectDateTimePeriod(createBookingDto.getStart(), createBookingDto.getEnd());
         return client.create(userId, createBookingDto);
     }
 
@@ -61,5 +65,14 @@ public class BookingController {
             @Positive @RequestParam(name = "size", required = false, defaultValue = "5") int size) {
         log.info("Выполнен запрос GET /bookings/owner?state={}&from={}&size={}.", status, from, size);
         return client.getAllByOwner(ownerId, status, from, size);
+    }
+
+    private void checkCorrectDateTimePeriod(LocalDateTime start, LocalDateTime end) {
+        if (start.equals(end)) {
+            throw new BookingBadRequestException("Дата начала бронирования не может быть равна дате окончания.");
+        }
+        if (start.isAfter(end)) {
+            throw new BookingBadRequestException("Дата начала бронирования указана позже даты окончания.");
+        }
     }
 }

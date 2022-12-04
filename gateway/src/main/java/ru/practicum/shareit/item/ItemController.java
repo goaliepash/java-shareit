@@ -3,6 +3,7 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.constraint_group.Create;
@@ -10,8 +11,10 @@ import ru.practicum.shareit.constraint_group.Update;
 import ru.practicum.shareit.item.dto.CommentRequestDto;
 import ru.practicum.shareit.item.dto.StandardItemDto;
 
+import java.util.Collections;
+
 @Slf4j
-@RestController
+@Controller
 @RequestMapping("/items")
 @RequiredArgsConstructor
 public class ItemController {
@@ -50,6 +53,9 @@ public class ItemController {
     @GetMapping("/search")
     public ResponseEntity<Object> search(@RequestParam(required = false, name = "text", defaultValue = "") String text) {
         log.info("Выполнен запрос GET /items/search?text={}.", text);
+        if (text.isBlank()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
         return client.search(text);
     }
 

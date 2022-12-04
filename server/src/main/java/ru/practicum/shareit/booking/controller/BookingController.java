@@ -2,19 +2,14 @@ package ru.practicum.shareit.booking.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.model.dto.BookingDto;
 import ru.practicum.shareit.booking.model.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.constraint_group.Create;
 
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
-@Validated
 @RestController
 @Slf4j
 @RequiredArgsConstructor
@@ -26,7 +21,7 @@ public class BookingController {
     @PostMapping
     public BookingDto create(
             @RequestHeader("X-Sharer-User-Id") long userId,
-            @Validated(Create.class) @RequestBody BookingRequestDto createBookingDto) {
+            @RequestBody BookingRequestDto createBookingDto) {
         log.info("Выполнен запрос POST /bookings.");
         return service.create(userId, createBookingDto);
     }
@@ -50,8 +45,8 @@ public class BookingController {
     public List<BookingDto> getAllByBooker(
             @RequestHeader("X-Sharer-User-Id") long bookerId,
             @RequestParam(name = "state", required = false, defaultValue = "ALL") String status,
-            @PositiveOrZero @RequestParam(name = "from", required = false, defaultValue = "0") int from,
-            @Positive @RequestParam(name = "size", required = false, defaultValue = "5") int size) {
+            @RequestParam(name = "from", required = false, defaultValue = "0") int from,
+            @RequestParam(name = "size", required = false, defaultValue = "5") int size) {
         log.info("Выполнен запрос GET /bookings?state={}&from={}&size={}.", status, from, size);
         return service.getAllByBooker(bookerId, status, from, size);
     }
@@ -60,8 +55,8 @@ public class BookingController {
     public List<BookingDto> getAllByOwner(
             @RequestHeader("X-Sharer-User-Id") long ownerId,
             @RequestParam(required = false, name = "state", defaultValue = "ALL") String status,
-            @PositiveOrZero @RequestParam(name = "from", required = false, defaultValue = "0") int from,
-            @Positive @RequestParam(name = "size", required = false, defaultValue = "5") int size) {
+            @RequestParam(name = "from", required = false, defaultValue = "0") int from,
+            @RequestParam(name = "size", required = false, defaultValue = "5") int size) {
         log.info("Выполнен запрос GET /bookings/owner?state={}&from={}&size={}.", status, from, size);
         return service.getAllByOwner(ownerId, status, from, size);
     }

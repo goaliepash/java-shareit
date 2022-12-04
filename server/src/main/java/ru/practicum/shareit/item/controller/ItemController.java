@@ -2,10 +2,7 @@ package ru.practicum.shareit.item.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.constraint_group.Create;
-import ru.practicum.shareit.constraint_group.Update;
 import ru.practicum.shareit.item.data.dto.CommentDto;
 import ru.practicum.shareit.item.data.dto.CommentRequestDto;
 import ru.practicum.shareit.item.data.dto.ItemDto;
@@ -25,7 +22,7 @@ public class ItemController {
     @PostMapping
     public ItemDto create(
             @RequestHeader("X-Sharer-User-Id") long userId,
-            @Validated(Create.class) @RequestBody StandardItemDto itemDto) {
+            @RequestBody StandardItemDto itemDto) {
         log.info("Выполнен запрос POST /items.");
         return service.create(userId, itemDto);
     }
@@ -34,7 +31,7 @@ public class ItemController {
     public ItemDto update(
             @PathVariable long itemId,
             @RequestHeader("X-Sharer-User-Id") long userId,
-            @Validated(Update.class) @RequestBody StandardItemDto itemDto) {
+            @RequestBody StandardItemDto itemDto) {
         log.info("Выполнен запрос PATCH /items/{}.", itemId);
         return service.update(itemId, userId, itemDto);
     }
@@ -65,7 +62,7 @@ public class ItemController {
     public CommentDto addComment(
             @PathVariable long itemId,
             @RequestHeader("X-Sharer-User-Id") long userId,
-            @Validated(Create.class) @RequestBody CommentRequestDto commentRequestDto) {
+            @RequestBody CommentRequestDto commentRequestDto) {
         log.info("Выполнен запрос POST /{}/comment.", itemId);
         return service.addComment(itemId, userId, commentRequestDto);
     }
